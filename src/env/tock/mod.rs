@@ -320,7 +320,7 @@ where
 
             // Wait for a button touch or an alarm.
             libtock_drivers::util::Util::<S>::yieldk_for(|| {
-                button_touched.get() || keepalive_expired.get()
+                !button_touched.get() || keepalive_expired.get()
             });
 
             Buttons::<S>::unregister_listener();

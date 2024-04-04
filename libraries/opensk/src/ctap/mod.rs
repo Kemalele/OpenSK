@@ -250,6 +250,7 @@ fn truncate_to_char_boundary(s: &str, mut max: usize) -> &str {
 
 // Sends keepalive packet during user presence checking. If user agent replies with CANCEL response,
 // returns Err(UserPresenceError::Canceled).
+#[allow(dead_code)]
 fn send_keepalive_up_needed<E: Env>(
     env: &mut E,
     channel: Channel,
@@ -329,43 +330,49 @@ fn send_keepalive_up_needed<E: Env>(
 /// Blocks for user presence.
 ///
 /// Returns an error in case of timeout, user declining presence request, or keepalive error.
-pub fn check_user_presence<E: Env>(env: &mut E, channel: Channel) -> Result<(), Ctap2StatusCode> {
+pub fn check_user_presence<E: Env>(env: &mut E, _channel: Channel) -> Result<(), Ctap2StatusCode> {
     env.user_presence().check_init();
 
     // The timeout is N times the keepalive delay.
-    const TIMEOUT_ITERATIONS: usize = TOUCH_TIMEOUT_MS / KEEPALIVE_DELAY_MS;
+    // const TIMEOUT_ITERATIONS: usize = TOUCH_TIMEOUT_MS / KEEPALIVE_DELAY_MS;
 
     // All fallible functions are called without '?' operator to always reach
     // check_complete(...) cleanup function.
 
-    let mut result = Err(UserPresenceError::Timeout);
-    for i in 0..=TIMEOUT_ITERATIONS {
-        // First presence check is made without timeout. That way Env implementation may return
-        // user presence check result immediately to client, without sending any keepalive packets.
-        result = env
-            .user_presence()
-            .wait_with_timeout(if i == 0 { 0 } else { KEEPALIVE_DELAY_MS });
-        if !matches!(result, Err(UserPresenceError::Timeout)) {
-            break;
-        }
-        // TODO: this may take arbitrary time. Next wait's delay should be adjusted
-        // accordingly, so that all wait_with_timeout invocations are separated by
-        // equal time intervals. That way token indicators, such as LEDs, will blink
-        // with a consistent pattern.
-        let keepalive_result = send_keepalive_up_needed(env, channel, KEEPALIVE_DELAY_MS);
-        if keepalive_result.is_err() {
-            debug_ctap!(
-                env,
-                "Sending keepalive failed with error {:?}",
-                keepalive_result.as_ref().unwrap_err()
-            );
-            result = keepalive_result;
-            break;
-        }
-    }
+    // let mut result = Err(UserPresenceError::Timeout);
+    // TEMP MOCK
+    // let mut result = Ok(());
+
+    // for i in 0..=TIMEOUT_ITERATIONS {
+    //     // First presence check is made without timeout. That way Env implementation may return
+    //     // user presence check result immediately to client, without sending any keepalive packets.
+    //     result = env
+    //         .user_presence()
+    //         .wait_with_timeout(if i == 0 { 0 } else { KEEPALIVE_DELAY_MS });
+    //     if !matches!(result, Err(UserPresenceError::Timeout)) {
+    //         break;
+    //     }
+    //     // TODO: this may take arbitrary time. Next wait's delay should be adjusted
+    //     // accordingly, so that all wait_with_timeout invocations are separated by
+    //     // equal time intervals. That way token indicators, such as LEDs, will blink
+    //     // with a consistent pattern.
+    //     let keepalive_result = send_keepalive_up_needed(env, channel, KEEPALIVE_DELAY_MS);
+    //     if keepalive_result.is_err() {
+    //         debug_ctap!(
+    //             env,
+    //             "Sending keepalive failed with error {:?}",
+    //             keepalive_result.as_ref().unwrap_err()
+    //         );
+    //         result = keepalive_result;
+    //         break;
+    //     }
+    // }
 
     env.user_presence().check_complete();
-    result.map_err(|e| e.into())
+    // result.map_err(|e| e.into())
+    // TEMP MOCK
+    // result
+    Ok(())
 }
 
 /// Holds data necessary to sign an assertion for a credential.
